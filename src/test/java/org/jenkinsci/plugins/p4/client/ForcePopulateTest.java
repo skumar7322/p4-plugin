@@ -81,10 +81,10 @@ class ForcePopulateTest extends DefaultEnvironment {
 		P4ChangeRef ref = new P4ChangeRef(change);
 
 		try (ClientHelper p4 = new ClientHelper(jenkins.getInstance(), CREDENTIAL, null, workspace)) {
-			// Seed populate uses the same ForceCleanImpl behaviour as the test sync so
-			// the populate type is consistent throughout; it populates the workspace
-			// and the server now believes every file is already synced.
-			Populate seed = new ForceCleanImpl(false, false, "", parallel);
+			// Seed populate uses ForceCleanImpl (consistent populate type with the test
+			// sync) but with have=true so the server have-table IS updated; the server
+			// now believes every file is already synced.
+			Populate seed = new ForceCleanImpl(true, false, null, parallel);
 			p4.syncFiles(ref, seed);
 			assertEquals(FILE_COUNT, countFiles(wsRoot), "seed sync should populate the workspace");
 
