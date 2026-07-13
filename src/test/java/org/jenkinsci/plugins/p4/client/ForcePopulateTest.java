@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.p4.client;
 import org.jenkinsci.plugins.p4.DefaultEnvironment;
 import org.jenkinsci.plugins.p4.SampleServerExtension;
 import org.jenkinsci.plugins.p4.changes.P4ChangeRef;
-import org.jenkinsci.plugins.p4.populate.AutoCleanImpl;
 import org.jenkinsci.plugins.p4.populate.ForceCleanImpl;
 import org.jenkinsci.plugins.p4.populate.ParallelSync;
 import org.jenkinsci.plugins.p4.populate.Populate;
@@ -82,9 +81,10 @@ class ForcePopulateTest extends DefaultEnvironment {
 		P4ChangeRef ref = new P4ChangeRef(change);
 
 		try (ClientHelper p4 = new ClientHelper(jenkins.getInstance(), CREDENTIAL, null, workspace)) {
-			// Normal sync populates the workspace and updates the have-table so the
-			// server now believes every file is already synced.
-			Populate seed = new AutoCleanImpl(true, true, false, false, false, "", null);
+			// Seed populate uses the same ForceCleanImpl behaviour as the test sync so
+			// the populate type is consistent throughout; it populates the workspace
+			// and the server now believes every file is already synced.
+			Populate seed = new ForceCleanImpl(false, false, "", parallel);
 			p4.syncFiles(ref, seed);
 			assertEquals(FILE_COUNT, countFiles(wsRoot), "seed sync should populate the workspace");
 
@@ -127,6 +127,7 @@ class ForcePopulateTest extends DefaultEnvironment {
 		for (File child : children) {
 			if (child.isDirectory()) {
 				deleteFiles(child);
+				assertTrue(child.delete(), "unable to delete dir " + child);
 			} else {
 				assertTrue(child.delete(), "unable to delete " + child);
 			}
